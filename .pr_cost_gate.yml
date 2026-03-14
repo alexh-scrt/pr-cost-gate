@@ -1,0 +1,100 @@
+# .pr_cost_gate.yml
+# Configuration file for pr_cost_gate — place this in your repository root.
+# All fields are optional; the values shown below are the defaults.
+#
+# Documentation: https://github.com/your-org/pr_cost_gate#configuration
+
+# ---------------------------------------------------------------------------
+# Model selection
+# ---------------------------------------------------------------------------
+# AI model used for token-based cost estimation.
+# Supported values:
+#   gpt-4o             - OpenAI GPT-4o (input: $5/1M tokens, output: $15/1M)
+#   gpt-4-turbo        - OpenAI GPT-4 Turbo (input: $10/1M, output: $30/1M)
+#   claude-3-5-sonnet  - Anthropic Claude 3.5 Sonnet (input: $3/1M, output: $15/1M)
+#   claude-3-opus      - Anthropic Claude 3 Opus (input: $15/1M, output: $75/1M)
+#   claude-3-haiku     - Anthropic Claude 3 Haiku (input: $0.25/1M, output: $1.25/1M)
+model: gpt-4o
+
+# ---------------------------------------------------------------------------
+# Cost thresholds
+# ---------------------------------------------------------------------------
+thresholds:
+  # Estimated cost in USD above which a WARN badge is shown in the PR comment.
+  # Set to 0 to disable warnings.
+  warn_usd: 1.00
+
+  # Estimated cost in USD above which the tool exits with a non-zero status,
+  # blocking any downstream AI review workflow steps.
+  # Set to 0 to disable blocking.
+  block_usd: 5.00
+
+# ---------------------------------------------------------------------------
+# Security scanning
+# ---------------------------------------------------------------------------
+security:
+  # Master switch for the security risk pattern scanner.
+  enabled: true
+
+  # Individual pattern categories — set to false to disable a specific check.
+  patterns:
+    # Hardcoded secrets: API keys, tokens, passwords in diff lines
+    secrets: true
+
+    # Authentication / authorization file changes (e.g. middleware, decorators)
+    auth_changes: true
+
+    # Raw SQL string construction patterns (potential injection vectors)
+    sql_injection: true
+
+    # Dangerous function usage: eval(), exec(), __import__(), subprocess with shell=True
+    dangerous_functions: true
+
+    # Dependency manifest modifications (requirements.txt, package.json, Pipfile, etc.)
+    dependency_changes: true
+
+# ---------------------------------------------------------------------------
+# Comment settings
+# ---------------------------------------------------------------------------
+comment:
+  # Whether to post the summary comment to the pull request.
+  post: true
+
+  # Whether to collapse the per-file breakdown table inside a <details> block.
+  # Recommended for large PRs to keep the comment readable.
+  collapsible: true
+
+  # Minimum risk level required to post a comment.
+  # Values: always | warn | block
+  # 'always'  — post a comment for every PR regardless of findings
+  # 'warn'    — only post when the risk level is WARN or BLOCK
+  # 'block'   — only post when the risk level is BLOCK
+  post_when: always
+
+# ---------------------------------------------------------------------------
+# File exclusions
+# ---------------------------------------------------------------------------
+exclusions:
+  # Glob patterns for files to exclude from analysis.
+  # Matches are applied to the file path as reported by the GitHub API.
+  paths:
+    - "**/*.lock"
+    - "**/vendor/**"
+    - "**/__pycache__/**"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/node_modules/**"
+    - "**/*.pb.go"
+    - "**/*.pb.py"
+
+# ---------------------------------------------------------------------------
+# Token counting
+# ---------------------------------------------------------------------------
+tokens:
+  # Maximum tokens to count per individual file before capping.
+  # Prevents runaway cost estimates for auto-generated or minified files.
+  max_per_file: 100000
+
+  # Whether to count only added/removed lines (+/-) in the diff rather than
+  # the full file context lines.
+  diff_only: true

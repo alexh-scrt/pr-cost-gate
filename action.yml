@@ -1,0 +1,105 @@
+# GitHub Action metadata for pr_cost_gate
+# Analyzes PR diffs for AI review costs and security risks.
+name: "PR Cost Gate"
+description: >-
+  Estimates token counts and AI review costs for pull request diffs,
+  flags security risk patterns, and posts a structured summary comment to the PR.
+  Optionally blocks the workflow if cost or risk thresholds are exceeded.
+author: "pr_cost_gate contributors"
+
+branding:
+  icon: "dollar-sign"
+  color: "orange"
+
+inputs:
+  github_token:
+    description: >-
+      GitHub token used to read PR diffs and post comments.
+      Use secrets.GITHUB_TOKEN for standard workflows.
+    required: true
+    default: ${{ github.token }}
+
+  pr_number:
+    description: >-
+      Pull request number to analyze. Defaults to the PR number from the
+      triggering event (github.event.pull_request.number).
+    required: false
+    default: ${{ github.event.pull_request.number }}
+
+  repo:
+    description: >-
+      Repository in owner/name format. Defaults to the current repository.
+    required: false
+    default: ${{ github.repository }}
+
+  model:
+    description: >-
+      AI model to use for cost estimation. Supported values:
+      gpt-4o, gpt-4-turbo, claude-3-5-sonnet, claude-3-opus, claude-3-haiku.
+    required: false
+    default: "gpt-4o"
+
+  warn_threshold_usd:
+    description: >-
+      Estimated cost in USD above which a WARN label is added to the PR comment.
+      Set to 0 to disable warnings.
+    required: false
+    default: "1.00"
+
+  block_threshold_usd:
+    description: >-
+      Estimated cost in USD above which the action exits with a non-zero status,
+      blocking downstream AI review steps. Set to 0 to disable blocking.
+    required: false
+    default: "5.00"
+
+  config_path:
+    description: >-
+      Path to the .pr_cost_gate.yml configuration file relative to the repository
+      root. When present, file settings override action input defaults.
+    required: false
+    default: ".pr_cost_gate.yml"
+
+  post_comment:
+    description: >-
+      Whether to post a Markdown summary comment to the pull request.
+      Set to 'false' to run analysis only without commenting.
+    required: false
+    default: "true"
+
+  security_scan:
+    description: >-
+      Whether to run the security risk pattern scanner on diff hunks.
+      Set to 'false' to skip security checks.
+    required: false
+    default: "true"
+
+outputs:
+  total_tokens:
+    description: "Total token count across all changed files in the PR diff."
+
+  estimated_cost_usd:
+    description: "Estimated AI review cost in USD for the PR diff."
+
+  risk_level:
+    description: "Overall risk level: OK, WARN, or BLOCK."
+
+  security_findings:
+    description: "Number of security risk findings detected in the diff."
+
+  comment_url:
+    description: "URL of the posted PR comment, if post_comment is true."
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    PR_NUMBER: ${{ inputs.pr_number }}
+    GITHUB_REPOSITORY: ${{ inputs.repo }}
+    PCG_MODEL: ${{ inputs.model }}
+    PCG_WARN_THRESHOLD_USD: ${{ inputs.warn_threshold_usd }}
+    PCG_BLOCK_THRESHOLD_USD: ${{ inputs.block_threshold_usd }}
+    PCG_CONFIG_PATH: ${{ inputs.config_path }}
+    PCG_POST_COMMENT: ${{ inputs.post_comment }}
+    PCG_SECURITY_SCAN: ${{ inputs.security_scan }}

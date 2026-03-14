@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "pr_cost_gate"
+version = "0.1.0"
+description = "Analyze PR diffs for AI review costs and security risks before triggering expensive AI code review tools."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "pr_cost_gate contributors" }
+]
+keywords = ["github", "pull-request", "ai", "cost", "security", "code-review"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+dependencies = [
+    "PyGithub>=2.1.1",
+    "tiktoken>=0.6.0",
+    "PyYAML>=6.0.1",
+    "requests>=2.31.0",
+]
+
+[project.scripts]
+pr-cost-gate = "pr_cost_gate.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/pr_cost_gate"
+Issues = "https://github.com/your-org/pr_cost_gate/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pr_cost_gate*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
